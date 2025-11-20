@@ -38,11 +38,11 @@ const navItems: NavItem[] = [
     path: "/reports/print"
   },
   // Only show Users menu for admin
-  ...(JSON.parse(localStorage.getItem('user') || '{}').role === 'admin' ? [{
-    icon: <UserIcon />,
-    name: "Users",
-    path: "/users",
-  }] : []),
+  // ...(JSON.parse(localStorage.getItem('user') || '{}').role === 'admin' ? [{
+  //   icon: <UserIcon />,
+  //   name: "Users",
+  //   path: "/users",
+  // }] : []),
 
   
 
