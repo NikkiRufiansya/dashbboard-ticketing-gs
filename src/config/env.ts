@@ -6,7 +6,7 @@ type Env = {
 };
 
 // Default API URL - can be overridden by REACT_APP_API_URL in .env file
-const DEFAULT_API_URL = 'http://apiticketgs.rmldev.my.id/api';
+const DEFAULT_API_URL = 'https://hmc1.rml.co.id/api-ticketing-gs/api';
 
 const env: Env = {
   api: {
