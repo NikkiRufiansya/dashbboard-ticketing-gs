@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom"; // harus pakai react-router-dom
-import { GridIcon, ChevronDownIcon, TableIcon, FileIcon, HorizontaLDots, UserIcon } from "../icons";
+import { GridIcon, ChevronDownIcon, TableIcon, FileIcon, HorizontaLDots } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
 type NavItem = {
