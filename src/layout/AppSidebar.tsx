@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom"; // harus pakai react-router-dom
-import { GridIcon, ChevronDownIcon, TableIcon, FileIcon, HorizontaLDots } from "../icons";
+import { GridIcon, ChevronDownIcon, TableIcon, FileIcon, HorizontaLDots, UserIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
 type NavItem = {
@@ -38,11 +38,11 @@ const navItems: NavItem[] = [
     path: "/reports/print"
   },
   // Only show Users menu for admin
-  // ...(JSON.parse(localStorage.getItem('user') || '{}').role === 'admin' ? [{
-  //   icon: <UserIcon />,
-  //   name: "Users",
-  //   path: "/users",
-  // }] : []),
+  ...(JSON.parse(localStorage.getItem('user') || '{}').role === 'admin' ? [{
+    icon: <UserIcon />,
+    name: "Users",
+    path: "/users",
+  }] : []),
 
   
 

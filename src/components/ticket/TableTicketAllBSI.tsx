@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import env from "../../config/env";
 
 interface Ticket {
   id: string;
@@ -31,7 +32,7 @@ export default function TableTicketAllBSI() {
         if (!token) throw new Error("No authentication token found");
 
         const response = await fetch(
-          `${process.env.REACT_APP_API_URL}/ticket/customer/bsi`,
+          `${env.api.url}/ticket/customer/bsi`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
