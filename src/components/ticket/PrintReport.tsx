@@ -5,6 +5,7 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import { format, subMonths } from 'date-fns';
 import { id } from 'date-fns/locale';
+import env from '../../config/env';
 
 interface Ticket {
   id: number;
@@ -62,7 +63,7 @@ const PrintReport: React.FC = () => {
       });
 
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/tickets/export/${customerId}?${params}`,
+        `${env.api.url}/tickets/export/${customerId}?${params}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -71,11 +72,27 @@ const PrintReport: React.FC = () => {
         }
       );
 
-      if (!response.ok) throw new Error('Failed to fetch tickets');
+      const contentType = response.headers.get('content-type') || '';
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          navigate('/login');
+          return;
+        }
+        const errBody = contentType.includes('application/json') ? await response.json().catch(() => ({})) : await response.text();
+        const message = typeof errBody === 'string' ? errBody.slice(0, 200) : (errBody.message || 'Failed to fetch tickets');
+        throw new Error(message);
+      }
+
+      if (!contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`Unexpected response (not JSON): ${text.slice(0, 200)}`);
+      }
 
       const data = await response.json();
-      if (data.success) {
+      if (data && data.success && Array.isArray(data.data)) {
         setTickets(data.data);
+      } else {
+        throw new Error(data?.message || 'Invalid response format');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

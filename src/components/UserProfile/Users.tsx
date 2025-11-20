@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import env from '../../config/env';
 
 interface User {
   id: number;
@@ -39,19 +40,27 @@ const UsersPage: React.FC = () => {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/users`, {
+      const response = await fetch(`${env.api.url}/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
+      const contentType = response.headers.get('content-type') || '';
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           navigate('/login');
           return;
         }
-        throw new Error(`Failed to fetch users: ${response.statusText}`);
+        const errBody = contentType.includes('application/json') ? await response.json().catch(() => ({})) : await response.text();
+        const message = typeof errBody === 'string' ? errBody.slice(0, 200) : (errBody.message || `Failed to fetch users: ${response.statusText}`);
+        throw new Error(message);
+      }
+
+      if (!contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`Unexpected response (not JSON): ${text.slice(0, 200)}`);
       }
 
       const result = await response.json();
@@ -105,7 +114,7 @@ const UsersPage: React.FC = () => {
       });
       
       // Use /register endpoint for user creation
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/register`, {
+      const response = await fetch(`${env.api.url}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,11 +128,20 @@ const UsersPage: React.FC = () => {
         })
       });
 
-      const responseData = await response.json();
+      const addContentType = response.headers.get('content-type') || '';
+      let responseData: any = {};
+      if (addContentType.includes('application/json')) {
+        responseData = await response.json().catch(() => ({}));
+      } else {
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(`Unexpected response (not JSON): ${text.slice(0, 200)}`);
+        }
+      }
       console.log('Create user response:', response.status, responseData);
 
       if (!response.ok) {
-        throw new Error(responseData.message || 'Failed to add user');
+        throw new Error((responseData && responseData.message) || 'Failed to add user');
       }
 
       // Show success notification
@@ -172,7 +190,7 @@ setFormData({ username: '', name: '', password: '', currentPassword: '', role: '
       }
 
       // Single request to update both user data and password (if provided)
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/${currentUser.id}`, {
+      const response = await fetch(`${env.api.url}/users/${currentUser.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -182,11 +200,20 @@ setFormData({ username: '', name: '', password: '', currentPassword: '', role: '
         body: JSON.stringify(updateData)
       });
 
-      const result = await response.json();
+      const updContentType = response.headers.get('content-type') || '';
+      let result: any = {};
+      if (updContentType.includes('application/json')) {
+        result = await response.json().catch(() => ({}));
+      } else {
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(`Unexpected response (not JSON): ${text.slice(0, 200)}`);
+        }
+      }
       console.log('Update user response:', response.status, result);
       
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to update user');
+        throw new Error((result && result.message) || 'Failed to update user');
       }
 
       // Show success notification
@@ -215,7 +242,7 @@ setFormData({ username: '', name: '', password: '', currentPassword: '', role: '
 
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/${id}`, {
+      const response = await fetch(`${env.api.url}/users/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -223,7 +250,12 @@ setFormData({ username: '', name: '', password: '', currentPassword: '', role: '
         },
       });
 
-      if (!response.ok) throw new Error('Failed to delete user');
+      const delContentType = response.headers.get('content-type') || '';
+      if (!response.ok) {
+        const errBody = delContentType.includes('application/json') ? await response.json().catch(() => ({})) : await response.text();
+        const message = typeof errBody === 'string' ? errBody.slice(0, 200) : (errBody.message || 'Failed to delete user');
+        throw new Error(message);
+      }
 
       fetchUsers();
     } catch (err) {
