@@ -28,9 +28,15 @@ export default function TicketCardMandiri() {
             'Content-Type': 'application/json'
           }
         });
+        const contentType = response.headers.get('content-type') || '';
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Failed to fetch ticket count');
+          const errBody = contentType.includes('application/json') ? await response.json().catch(() => ({})) : await response.text();
+          const message = typeof errBody === 'string' ? errBody.slice(0, 200) : (errBody.message || 'Failed to fetch ticket count');
+          throw new Error(message);
+        }
+        if (!contentType.includes('application/json')) {
+          const text = await response.text();
+          throw new Error(`Unexpected response (not JSON): ${text.slice(0, 200)}`);
         }
         const data: TicketCount = await response.json();
         setTicketCount(data);

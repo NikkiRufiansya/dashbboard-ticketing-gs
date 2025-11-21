@@ -41,7 +41,22 @@ export default function TableTicketAllBSI() {
           }
         );
 
-        if (!response.ok) throw new Error("Failed to fetch tickets");
+        const contentType = response.headers.get("content-type") || "";
+        if (!response.ok) {
+          const errBody = contentType.includes("application/json")
+            ? await response.json().catch(() => ({}))
+            : await response.text();
+          const message =
+            typeof errBody === "string"
+              ? errBody.slice(0, 200)
+              : errBody.message || "Failed to fetch tickets";
+          throw new Error(message);
+        }
+
+        if (!contentType.includes("application/json")) {
+          const text = await response.text();
+          throw new Error(`Unexpected response (not JSON): ${text.slice(0, 200)}`);
+        }
 
         const data = await response.json();
         if (data.success) {
