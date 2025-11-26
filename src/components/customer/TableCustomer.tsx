@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 
+
 interface Customer {
   id: number;
   customer: string;
@@ -22,6 +23,18 @@ export default function TableCustomer() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+
+  const openDetail = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setIsDetailOpen(true);
+  };
+
+  const closeDetail = () => {
+    setSelectedCustomer(null);
+    setIsDetailOpen(false);
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
   const customersPerPage = 5; // jumlah row per page
@@ -31,7 +44,7 @@ export default function TableCustomer() {
   const [statusFilter] = useState("all");
 
   // filtering logic
-  // filtering logic
+
   const filteredCustomers = customers.filter((c) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
@@ -42,16 +55,9 @@ export default function TableCustomer() {
     const haystack = [
       c.customer,
       c.application_name,
-      c.android_bundle_id,
-      c.ios_bundle_id,
       c.number_of_download,
       c.product,
-      c.start_date,
       c.expired_date,
-      c.technical_contact,
-      c.sales_contact,
-      c.partner,
-      c.pic_partner,
     ]
       .map(inText)
       .join(" ");
@@ -81,6 +87,11 @@ export default function TableCustomer() {
 
 
   useEffect(() => {
+    if (isDetailOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
     const fetchCustomers = async () => {
       try {
         const response = await fetch('https://hmc1.rml.co.id/api-customer-gs/api/data', {
@@ -99,7 +110,10 @@ export default function TableCustomer() {
     };
 
     fetchCustomers();
-  }, []);
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isDetailOpen]);
 
   if (loading) {
     return (
@@ -152,29 +166,20 @@ export default function TableCustomer() {
               Application Name
             </th>
             <th scope="col" className="px-6 py-3">
-              Android Bundle ID
-            </th>
-            <th scope="col" className="px-6 py-3">
-              iOS Bundle ID
-            </th>
-            <th scope="col" className="px-6 py-3">
               Number of Download
             </th>
             <th scope="col" className="px-6 py-3">
               Product
             </th>
-            <th scope="col" className="px-6 py-3">
-              Start Date
-            </th>
+
             <th scope="col" className="px-6 py-3">
               Expired Date
             </th>
+
             <th scope="col" className="px-6 py-3">
-              Technical Contact
+              Action
             </th>
-            <th scope="col" className="px-6 py-3">
-              Sales Contact
-            </th>
+
           </tr>
         </thead>
         <tbody>
@@ -188,28 +193,21 @@ export default function TableCustomer() {
                   {customer.application_name}
                 </td>
                 <td className="px-6 py-4">
-                  {customer.android_bundle_id}
-                </td>
-                <td className="px-6 py-4">
-                  {customer.ios_bundle_id}
-                </td>
-                <td className="px-6 py-4">
                   {customer.number_of_download}
                 </td>
                 <td className="px-6 py-4">
                   {customer.product}
                 </td>
                 <td className="px-6 py-4">
-                  {customer.start_date}
-                </td>
-                <td className="px-6 py-4">
                   {customer.expired_date}
                 </td>
                 <td className="px-6 py-4">
-                  {customer.technical_contact}
-                </td>
-                <td className="px-6 py-4">
-                  {customer.sales_contact}
+                  <button
+                    onClick={() => openDetail(customer)}
+                    className="px-3 py-2 text-xs font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  >
+                    Detail
+                  </button>
                 </td>
               </tr>
             ))
@@ -219,6 +217,45 @@ export default function TableCustomer() {
                 No customers found.
               </td>
             </tr>
+          )}
+          {isDetailOpen && selectedCustomer && (
+            <div
+              className="fixed inset-0 z-[1000] flex items-center justify-center"
+              aria-modal="true"
+              role="dialog"
+            >
+              <div
+                className="absolute inset-0 bg-black/40"
+                onClick={closeDetail}
+              />
+              <div className="relative z-10 w-full max-w-lg mx-4 rounded-lg bg-white dark:bg-gray-800 shadow-lg">
+                <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
+                  <h4 className="text-base font-semibold text-gray-900 dark:text-white">
+                    Customer Detail
+                  </h4>
+                  <button
+                    onClick={closeDetail}
+                    className="px-2 py-1 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="p-4 text-sm text-gray-700 dark:text-gray-200 space-y-2">
+                  <div className="flex justify-between"><span>Customer</span><span className="font-medium">{selectedCustomer.customer ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Application Name</span><span className="font-medium">{selectedCustomer.application_name ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Android Bundle ID</span><span className="font-medium">{selectedCustomer.android_bundle_id ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>iOS Bundle ID</span><span className="font-medium">{selectedCustomer.ios_bundle_id ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Number of Download</span><span className="font-medium">{selectedCustomer.number_of_download ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Product</span><span className="font-medium">{selectedCustomer.product ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Start Date</span><span className="font-medium">{selectedCustomer.start_date ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Expired Date</span><span className="font-medium">{selectedCustomer.expired_date ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Technical Contact</span><span className="font-medium">{selectedCustomer.technical_contact ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Sales Contact</span><span className="font-medium">{selectedCustomer.sales_contact ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>Partner</span><span className="font-medium">{selectedCustomer.partner ?? "-"}</span></div>
+                  <div className="flex justify-between"><span>PIC Partner</span><span className="font-medium">{selectedCustomer.pic_partner ?? "-"}</span></div>
+                </div>
+              </div>
+            </div>
           )}
         </tbody>
       </table>
@@ -241,5 +278,8 @@ export default function TableCustomer() {
         </div>
       </div>
     </div>
+
   );
+
+
 }
