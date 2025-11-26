@@ -16,6 +16,7 @@ import TicketClosed from "./pages/Dashboard/TicketClosed";
 import PrintReport from "./components/ticket/PrintReport";
 import Users from "./components/UserProfile/Users";
 import MyProfile from "./pages/Profile/MyProfile";
+import CustomerData from "./pages/Dashboard/CustomerData";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -135,7 +136,15 @@ const AppRoutes = () => {
             <MyProfile />
           </ProtectedRoute>
         } />
+
+         <Route path="/customer-data" element={
+        <ProtectedRoute>
+          <CustomerData />
+        </ProtectedRoute>
+      } />
       </Route>
+
+     
 
      
       {/* Catch all route */}

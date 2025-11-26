@@ -25,6 +25,11 @@ const navItems: NavItem[] = [
   },
   {
     icon: <TableIcon />,
+    name: "Customer",
+    path: "/customer-data",
+  },
+  {
+    icon: <TableIcon />,
     name: "Ticket",
     subItems: [
       { name: "All Ticket", path: "/tickets", badge: "all" },
